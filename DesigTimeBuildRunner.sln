@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DesigTimeBuildRunner", "src\DesigTimeBuildRunner\DesigTimeBuildRunner.csproj", "{5AC6B017-856B-400F-BFA3-4D7DB8969EBB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DesigTimeBuildRunner", "src\DesigTimeBuildRunner\DesigTimeBuildRunner.csproj", "{7363986F-5568-4B16-8A71-1825D3843B87}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -8,9 +8,9 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{5AC6B017-856B-400F-BFA3-4D7DB8969EBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5AC6B017-856B-400F-BFA3-4D7DB8969EBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5AC6B017-856B-400F-BFA3-4D7DB8969EBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5AC6B017-856B-400F-BFA3-4D7DB8969EBB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7363986F-5568-4B16-8A71-1825D3843B87}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7363986F-5568-4B16-8A71-1825D3843B87}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7363986F-5568-4B16-8A71-1825D3843B87}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7363986F-5568-4B16-8A71-1825D3843B87}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
