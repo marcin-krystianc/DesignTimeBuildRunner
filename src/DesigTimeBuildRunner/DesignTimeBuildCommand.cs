@@ -1,4 +1,5 @@
-﻿using Microsoft.Build.Definition;
+﻿using Microsoft.Build.Construction;
+using Microsoft.Build.Definition;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Evaluation.Context;
 using Microsoft.Build.Execution;
@@ -16,20 +17,22 @@ public sealed class DesignTimeBuildCommand : AsyncCommand<BuildSettings>
 
         var globalProperties = new Dictionary<String, String>
         {
-            //{"RestoreDisableParallel", "true"},
-            //{"RestoreForce", "true"},
-            //{"RestoreUseStaticGraphEvaluation", "true"}, // new process
-            //{"EnableTransitiveDependencyPinning", "false"},
-            { "TargetFramework", "net5.0" },
+            { "TargetFramework", settings.TargetFramework },
+            { "AndroidPreserveUserData", "true" },
+            { "AndroidUseManagedDesignTimeResourceGenerator", "True" },
+            { "BuildingByReSharper", "True" },
+            { "BuildingProject", "False" },
+            { "BuildProjectReferences", "False" },
+            { "ContinueOnError", "ErrorAndContinue" },
+            { "DesignTimeBuild", "True" },
+            { "DesignTimeSilentResolution", "False" },
+            { "JetBrainsDesignTimeBuild", "True" },
+            { "ProvideCommandLineArgs", "True" },
+            { "ResolveAssemblyReferencesSilent", "False" },
+            { "SkipCompilerExecution", "True" },
         };
 
-        var targets = new[]
-        {
-            "GetSuggestedWorkloads", "_CheckForInvalidConfigurationAndPlatform", "ResolveReferences",
-            "ResolveProjectReferences", "ResolveAssemblyReferences", "ResolveComReferences",
-            "ResolveNativeReferences", "ResolveSdkReferences", "ResolveFrameworkReferences",
-            "ResolvePackageDependenciesDesignTime", "Compile", "CoreCompile"
-        };
+        var targets = settings.Targets.Split(';');
 
         using var projectCollection = new ProjectCollection();
         var projectOptions = new ProjectOptions
@@ -41,24 +44,39 @@ public sealed class DesignTimeBuildCommand : AsyncCommand<BuildSettings>
             EvaluationContext = EvaluationContext.Create(EvaluationContext.SharingPolicy.Shared),
             GlobalProperties = globalProperties,
         };
-        var projectPaths = new[]
+
+        var projectPaths = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(settings.Solution))
         {
-            @"D:\workspace\TestSolutions\SimpleAppWithLibs\App\App.csproj",
-            @"D:\workspace\TestSolutions\SimpleAppWithLibs\Lib1\Lib1.csproj",
-            @"D:\workspace\TestSolutions\SimpleAppWithLibs\Lib2\Lib2.csproj",
-        };
+            var solutionFile = SolutionFile.Parse(settings.Solution);
+            var projectsToProcess = solutionFile.ProjectsInOrder
+                .Where(x => x.ProjectType == SolutionProjectType.KnownToBeMSBuildFormat)
+                .Select(x => x.AbsolutePath);
+
+            projectPaths.AddRange(projectsToProcess);
+        }
+
+        if (settings.Projects != null)
+        {
+            projectPaths.AddRange(settings.Projects);
+        }
+
+        var myLogger = new MySimpleLogger();
+        var loggers = new List<ILogger> { myLogger };
+        if (!string.IsNullOrWhiteSpace(settings.BinLogPath))
+        {
+            loggers.Add(new BinaryLogger { Parameters = settings.BinLogPath });
+        }
 
         HostServices hostServices = null;
         var buildManager = BuildManager.DefaultBuildManager;
         var submisions = new List<BuildSubmission>();
-        var myLogger = new MySimpleLogger();
         var buildParameters = new BuildParameters(projectCollection)
         {
-            Loggers = new ILogger[]
-            {
-                myLogger,
-                new BinaryLogger { Parameters = "build.binlog" }
-            },
+            Loggers = loggers,
+            MaxNodeCount = settings.Nodes,
+            // MemoryUseLimit = 1,
         };
 
         buildManager.BeginBuild(buildParameters);
