@@ -9,6 +9,7 @@ namespace DesigTimeBuildRunner
         static async Task Main(string[] args)
         {
             var registeredInstance = MSBuildLocator.RegisterDefaults();
+            Console.WriteLine($"Using {registeredInstance.MSBuildPath}");
             var app = new CommandApp<DesignTimeBuildCommand>();
             await app.RunAsync(args);
         }

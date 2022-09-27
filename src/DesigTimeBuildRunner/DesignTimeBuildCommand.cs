@@ -1,10 +1,12 @@
-﻿using Microsoft.Build.Construction;
+﻿using System.Diagnostics;
+using Microsoft.Build.Construction;
 using Microsoft.Build.Definition;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Evaluation.Context;
 using Microsoft.Build.Execution;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Logging;
+using Spectre.Console;
 using Spectre.Console.Cli;
 
 namespace DesigTimeBuildRunner;
@@ -79,6 +81,7 @@ public sealed class DesignTimeBuildCommand : AsyncCommand<BuildSettings>
             // MemoryUseLimit = 1,
         };
 
+        var sw = Stopwatch.StartNew();
         buildManager.BeginBuild(buildParameters);
         foreach (var projectPath in projectPaths)
         {
@@ -112,7 +115,18 @@ public sealed class DesignTimeBuildCommand : AsyncCommand<BuildSettings>
         }
 
         buildManager.EndBuild();
-        Console.WriteLine("Build complete!");
+        var overallSuccess = submisions.All(x => x.BuildResult.OverallResult == BuildResultCode.Success);
+        if (overallSuccess)
+        {
+            AnsiConsole.Markup("[green]Build succeeded![/]\n");
+        }
+        else
+        {
+            AnsiConsole.Markup("[red]Build failed![/]\n");
+            
+        }
+
+        Console.WriteLine($"Elapsed: {sw.Elapsed}");
         return 0;
     }
 
