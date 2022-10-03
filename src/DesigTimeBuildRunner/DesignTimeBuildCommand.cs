@@ -17,6 +17,7 @@ public sealed class DesignTimeBuildCommand : AsyncCommand<BuildSettings>
     {
         await Task.Yield();
 
+        var dotnetHostPath = DotNetInfoProvider.GetDotNetHostPath();
         var globalProperties = new Dictionary<String, String>
         {
             { "TargetFramework", settings.TargetFramework },
@@ -32,6 +33,10 @@ public sealed class DesignTimeBuildCommand : AsyncCommand<BuildSettings>
             { "ProvideCommandLineArgs", "True" },
             { "ResolveAssemblyReferencesSilent", "False" },
             { "SkipCompilerExecution", "True" },
+
+            // Necessary to run FSC from non-dotnet processes
+            { "FscToolPath", dotnetHostPath.Directory },
+            { "FscToolExe", dotnetHostPath.Executeable },
         };
 
         var targets = settings.Targets.Split(';');
@@ -73,7 +78,7 @@ public sealed class DesignTimeBuildCommand : AsyncCommand<BuildSettings>
 
         HostServices hostServices = null;
         var buildManager = BuildManager.DefaultBuildManager;
-        var submisions = new List<BuildSubmission>();
+        var submissions = new List<BuildSubmission>();
         var buildParameters = new BuildParameters(projectCollection)
         {
             Loggers = loggers,
@@ -106,16 +111,16 @@ public sealed class DesignTimeBuildCommand : AsyncCommand<BuildSettings>
 
             buildSubmission.ExecuteAsync((submission => HandleSubmission(submission, project, projectInstance)),
                 null);
-            submisions.Add(buildSubmission);
+            submissions.Add(buildSubmission);
         }
 
-        foreach (var submission in submisions)
+        foreach (var submission in submissions)
         {
             submission.WaitHandle.WaitOne();
         }
 
         buildManager.EndBuild();
-        var overallSuccess = submisions.All(x => x.BuildResult.OverallResult == BuildResultCode.Success);
+        var overallSuccess = submissions.All(x => x.BuildResult.OverallResult == BuildResultCode.Success);
         if (overallSuccess)
         {
             AnsiConsole.Markup("[green]Build succeeded![/]\n");
@@ -123,7 +128,6 @@ public sealed class DesignTimeBuildCommand : AsyncCommand<BuildSettings>
         else
         {
             AnsiConsole.Markup("[red]Build failed![/]\n");
-            
         }
 
         Console.WriteLine($"Elapsed: {sw.Elapsed}");
